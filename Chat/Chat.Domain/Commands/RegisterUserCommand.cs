@@ -19,15 +19,15 @@ namespace Chat.Domain.Commands
             _userRepository = userRepository;
         }
 
-        public void Execute(RegisterUserRequest request)
+        public int Execute(RegisterUserRequest request)
         {
             try
             {
-                if (_validator.IsUserValid(request.UserName, request.Password))
+                if (_validator.IsUserValid(request.name, request.password))
                 {
-                    var user = new UserDTO(request.UserName, request.Password);
+                    var user = new UserDTO(request.name, request.password);
 
-                    _userRepository.Add(user);
+                    return _userRepository.Add(user);
                 }
                 else
                 {
@@ -36,7 +36,7 @@ namespace Chat.Domain.Commands
             }
             catch(Exception ex)
             {
-
+                throw ex;
             }
         }
     }

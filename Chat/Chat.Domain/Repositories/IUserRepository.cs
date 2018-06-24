@@ -9,5 +9,7 @@ namespace Chat.Domain.Repositories
         IUserDTO GetById(int userId);
 
         void Remove(int userId);
+
+        bool IsValiad(string userName, string password);
     }
 }

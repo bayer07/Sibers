@@ -10,7 +10,7 @@ namespace Chat.Domain.Exceptions
     public class InvalidUserException: Exception
     {
         public InvalidUserException() { }
-        public InvalidUserException(string message) : base(message) { }
+        public InvalidUserException(string message) : base(message) { message = "User name or password is incorrect"; }
         public InvalidUserException(string message, Exception inner) : base(message, inner) { }
         protected InvalidUserException(
           System.Runtime.Serialization.SerializationInfo info,

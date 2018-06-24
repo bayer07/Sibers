@@ -19,25 +19,21 @@ namespace Chat.Domain.Commands
             _userRepository = userRepository;
         }
 
-        public void Execute(AuthenticationRequest request)
+        public bool Execute(AuthenticationRequest request)
         {
             try
             {
-                if (_validator.IsUserValid(request.UserName, request.Password))
+                if (_validator.IsUserValid(request.name, request.password))
                 {
-                    var user = new UserDTO(request.UserName, request.Password);
-
-                    _userRepository.Add(user);
-                }
-                else
-                {
-                    throw new InvalidUserException();
+                    return _userRepository.IsValiad(request.name, request.password);
                 }
             }
             catch(Exception ex)
             {
-
+                throw ex;
             }
+
+            return false;
         }
     }
 }

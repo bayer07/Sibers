@@ -1,34 +1,45 @@
-﻿using Chat.Domain.Commands;
-using Chat.Domain.Requests;
-using Microsoft.Web.WebSockets;
+﻿using Microsoft.Web.WebSockets;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Chat.Controllers
 {
-    public class ChatWebSocketHandler : WebSocketHandler
+    class ChatWebSocketHandler : WebSocketHandler
     {
-        private static WebSocketCollection _chatClients = new WebSocketCollection();
+        private static WebSocketCollection _webSocketClients = new WebSocketCollection();
         private string _username;
-        RegisterUserCommand _registerUserCommand;
 
-        public ChatWebSocketHandler(RegisterUserCommand registerUserCommand)
+        private static List<string> _clients = new List<string>();
+
+
+        public static List<string> Clients
         {
-            _registerUserCommand = registerUserCommand;
+            get
+            {
+                return _clients;
+            }
         }
 
-        public void Register(RegisterUserRequest request)
+        public ChatWebSocketHandler(string username)
         {
-            _registerUserCommand.Execute(request);
-            _username = request.UserName;
+            _username = username;
+        }
+
+        public bool IsConnected(string name)
+        {
+            var socket = _webSocketClients.SingleOrDefault(r => ((ChatWebSocketHandler)r)._username == _username);
+            return socket != null;
         }
 
         public override void OnOpen()
         {
-            _chatClients.Add(this);
+            _webSocketClients.Add(this);
+            _clients.Add(_username);
         }
 
         public override void OnMessage(string message)
         {
-            _chatClients.Broadcast(_username + ": " + message);
+            _webSocketClients.Broadcast(_username + ": " + message);
         }
     }
 }

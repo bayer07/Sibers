@@ -1,10 +1,6 @@
 ﻿using Chat.Domain.Commands;
 using Chat.Domain.Requests;
-using Chat.Domain.Validators;
-using Microsoft.Web.WebSockets;
-using System.Net;
-using System.Net.Http;
-using System.Web;
+using System.Collections.Generic;
 using System.Web.Http;
 
 namespace Chat.Controllers
@@ -12,20 +8,38 @@ namespace Chat.Controllers
     [RoutePrefix("api/chat")]
     public class ChatController : ApiController
     {
-        ChatWebSocketHandler _chatWebSocketHandler;
+        RegisterUserCommand _registerUserCommand;
 
-        public ChatController(ChatWebSocketHandler chatWebSocketHandler)
+        AuthenticationCommand _authenticationCommand;
+
+        public ChatController(
+            RegisterUserCommand registerUserCommand,
+            AuthenticationCommand authenticationCommand)
         {
-            _chatWebSocketHandler = chatWebSocketHandler;
+            _registerUserCommand = registerUserCommand;
+            _authenticationCommand = authenticationCommand;
         }
 
+        [HttpPost]
         [Route("register")]
-        public HttpResponseMessage Get(string username, string password)
+        public bool Register(RegisterUserRequest request)
         {
-            var request = new RegisterUserRequest() { UserName = username, Password = password };
-            _chatWebSocketHandler.Register(request);
-            HttpContext.Current.AcceptWebSocketRequest(_chatWebSocketHandler);
-            return Request.CreateResponse(HttpStatusCode.SwitchingProtocols);
+            var userId = _registerUserCommand.Execute(request);
+            return userId != 0;
+        }
+
+        [HttpPost]
+        [Route("signin")]
+        public bool SignIn(AuthenticationRequest request)
+        {
+            return _authenticationCommand.Execute(request);
+        }
+
+        [HttpGet]
+        [Route("clients")]
+        public List<string> Clients()
+        {
+            return ChatWebSocketHandler.Clients;
         }
     }
 }

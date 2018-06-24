@@ -155,6 +155,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\ChatWebSocketHandler.cs" />
+    <Compile Include="Controllers\WebSocketsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

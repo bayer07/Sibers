@@ -3,34 +3,275 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script src="Scripts/jquery-3.3.1.js"></script>
-    <script>
-        $(document).ready(function () {
+    <link href="Content/themes/base/jquery-ui.min.css" rel="stylesheet" />
+    <style>
+        label, input {
+            display: block;
+        }
 
-            var username = prompt('Please enter a username:');
-            var uri = 'ws://' + window.location.hostname + ':' + location.port + '/' + 'api/chat/register' + '?username=' + username + '&password=123';
-            websocket = new WebSocket(uri);
-            websocket.onopen = function () {
-                $('#messages').prepend('<div>Connected.</div>');
-                $('#chatform').submit(function (event) {
-                    websocket.send($('#inputbox').val());
-                    $('#inputbox').val('');
-                    event.preventDefault();
-                })
+            input.text {
+                margin-bottom: 12px;
+                width: 95%;
+                padding: .4em;
             }
-            websocket.onerror = function (event) {
-                $('#messages').prepend('<div>ERROR</div>');
+
+        fieldset {
+            padding: 0;
+            border: 0;
+            margin-top: 25px;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            margin: .6em 0;
+        }
+
+        div#users-contain {
+            width: 350px;
+            margin: 20px 0;
+        }
+
+            div#users-contain table {
+                margin: 1em 0;
+                border-collapse: collapse;
+                width: 100%;
             }
-            websocket.onmessage = function (event) {
-                $('#messages').prepend('<div>' + event.data + '</div>');
-            }
-        })
-    </script>
+
+                div#users-contain table td, div#users-contain table th {
+                    border: 1px solid #eee;
+                    padding: .6em 10px;
+                    text-align: left;
+                }
+
+        .ui-dialog .ui-state-error {
+            padding: .3em;
+        }
+
+        .validateTips {
+            border: 1px solid transparent;
+            padding: 0.3em;
+        }
+    </style>
 </head>
 <body>
+    <button id="sign-up">Sign up</button>
+    <button id="sign-in">Sign in</button>
     <form id="chatform" action="">
         <input id="inputbox" />
     </form>
     <div id="messages" />
+    <div id="users" />
+
+    <div id="dialog-form-sign-up" title="Create new user">
+        <p class="validateTips">All form fields are required.</p>
+        <form>
+            <fieldset>
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" value="Jane Smith" class="text ui-widget-content ui-corner-all">
+                <label for="email">Email</label>
+                <input type="text" name="email" id="email" value="jane@smith.com" class="text ui-widget-content ui-corner-all">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" value="xxxxxxx" class="text ui-widget-content ui-corner-all">
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
+    <div id="dialog-form-sign-in" title="Sign in">
+        <form>
+            <fieldset>
+                <label for="name">Name</label>
+                <input type="text" name="name" id="nameSignIn" value="Jane Smith" class="text ui-widget-content ui-corner-all">                
+                <label for="password">Password</label>
+                <input type="password" name="password" id="passwordSignIn" value="xxxxxxx" class="text ui-widget-content ui-corner-all">
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
+    <script src="Scripts/jquery-3.3.1.min.js"></script>
+    <script src="Scripts/jquery-ui-1.12.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            var signUpDialog, signInDialog, form,
+
+                // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
+                emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+                name = $("#name"),
+                email = $("#email"),
+                nameSignIn = $("#nameSignIn"),
+                email = $("#email"),
+                passwordSignIn = $("#passwordSignIn"),
+                allFields = $([]).add(name).add(email).add(password),
+                tips = $(".validateTips");
+
+            function updateTips(t) {
+                tips
+                    .text(t)
+                    .addClass("ui-state-highlight");
+                setTimeout(function () {
+                    tips.removeClass("ui-state-highlight", 1500);
+                }, 500);
+            }
+
+            function checkLength(o, n, min, max) {
+                if (o.val().length > max || o.val().length < min) {
+                    o.addClass("ui-state-error");
+                    updateTips("Length of " + n + " must be between " +
+                        min + " and " + max + ".");
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            function checkRegexp(o, regexp, n) {
+                if (!(regexp.test(o.val()))) {
+                    o.addClass("ui-state-error");
+                    updateTips(n);
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            signUpDialog = $("#dialog-form-sign-up").dialog({
+                autoOpen: false,
+                height: 400,
+                width: 350,
+                modal: true,
+                buttons: {
+                    "Create an account": addUser,
+                    Cancel: function () {
+                        signUpDialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    allFields.removeClass("ui-state-error");
+                }
+            });
+
+            signInDialog = $("#dialog-form-sign-in").dialog({
+                autoOpen: false,
+                height: 400,
+                width: 350,
+                modal: true,
+                buttons: {
+                    "Sign In": signIn,
+                    Cancel: function () {
+                        signInDialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    allFields.removeClass("ui-state-error");
+                }
+            });
+
+            $("#sign-up").button().on("click", function () {
+                signUpDialog.dialog("open");
+            });
+
+            $("#sign-in").button().on("click", function () {
+                signInDialog.dialog("open");
+            });
+
+            function addUser() {
+                var valid = true;
+                allFields.removeClass("ui-state-error");
+
+                valid = valid && checkLength(name, "username", 3, 16);
+                valid = valid && checkLength(email, "email", 6, 80);
+                valid = valid && checkLength(password, "password", 5, 16);
+
+                valid = valid && checkRegexp(name, /^[a-z]([0-9a-z_\s])+$/i, "Username may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");
+                valid = valid && checkRegexp(email, emailRegex, "eg. ui@jquery.com");
+                valid = valid && checkRegexp(password, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9");
+
+                if (valid) {                    
+                    var user = { name: $("#name").val(), password: $("#password").val() };
+                    $.post('api/chat/register',
+                        user)
+                        .done(function (response) {
+                            signUpDialog.dialog("close");
+                            if (response) {
+                                connect(user.name, user.password);
+                            }
+                        })
+                        .fail(function (err) {
+                            var error = JSON.parse(err.statusText);
+                            alert(error.Message);
+                        });
+                }
+                return valid;
+            }
+
+            function signIn() {
+                var valid = true;
+                allFields.removeClass("ui-state-error");
+
+                valid = valid && checkLength(nameSignIn, "username", 3, 16);                
+                valid = valid && checkLength(passwordSignIn, "password", 5, 16);
+
+                valid = valid && checkRegexp(nameSignIn, /^[a-z]([0-9a-z_\s])+$/i, "Username may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");                
+                valid = valid && checkRegexp(passwordSignIn, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9");
+
+                if (valid) {
+                    var user = { name: $("#nameSignIn").val(), password: $("#passwordSignIn").val() };
+                    $.post('api/chat/signin',
+                        user)
+                        .done(function (response) {
+                            signInDialog.dialog("close");
+                            if (response) {
+                                connect(user.name, user.password);
+                            }
+                        })
+                        .fail(function (err) {
+                            var error = JSON.parse(err.statusText);
+                            alert(error.Message);
+                        });
+                }
+                return valid;
+            }
+
+            function connect(name, password) {
+                var uri = 'ws://' + window.location.hostname + ':' + location.port + '/' + 'api/WebSockets' +
+                    '?name=' + name + '&password=' + password;
+                websocket = new WebSocket(uri);
+                websocket.onopen = function () {
+                    $('#messages').prepend('<div>Connected.</div>');
+                    $('#chatform').submit(function (event) {
+                        websocket.send($('#inputbox').val());
+                        $('#inputbox').val('');
+                        event.preventDefault();
+                    });
+                    clearUsersList();
+                    fillUsersList();
+                };
+
+                websocket.onerror = function (err) {
+                    $('#messages').prepend('<div>ERROR</div>');
+                };
+
+                websocket.onmessage = function (event) {
+                    $('#messages').prepend('<div>' + event.data + '</div>');
+                };
+            }
+
+            function fillUsersList() {
+                $.get('api/chat/clients', function (data) {
+                    var list = $("#users").append('<ul></ul>').find('ul');
+                    $.each(data, function (key, value) {
+                        list.append('<li>' + value + '</li>');
+                    });
+                });
+            }
+
+            function clearUsersList() {
+                $("#users").empty();
+            };
+        })
+    </script>
+
 </body>
 </html>
