@@ -1,4 +1,6 @@
 ﻿using Chat.Domain.Commands;
+using Chat.Domain.Models;
+using Chat.Domain.Repositories;
 using Chat.Domain.Requests;
 using Microsoft.Web.WebSockets;
 using System.Net;
@@ -11,10 +13,12 @@ namespace Chat.Controllers
     public class WebSocketsController : ApiController
     {
         AuthenticationCommand _authenticationCommand;
+        IUserRepository _userRepository;
 
-        public WebSocketsController(AuthenticationCommand authenticationCommand)
+        public WebSocketsController(AuthenticationCommand authenticationCommand, IUserRepository userRepository)
         {
             _authenticationCommand = authenticationCommand;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
@@ -24,17 +28,13 @@ namespace Chat.Controllers
             var isAuthenticated = _authenticationCommand.Execute(request);
             if (isAuthenticated)
             {
-                var chatWebSocketHandler = new ChatWebSocketHandler(name);
-                if (!chatWebSocketHandler.IsConnected(name))
-                {
-                    HttpContext.Current.AcceptWebSocketRequest(chatWebSocketHandler);
-                    return Request.CreateResponse(HttpStatusCode.SwitchingProtocols);
-                }
+                var user = _userRepository.GetByCredentials(name, password);
+                var chatWebSocketHandler = new ChatWebSocketHandler(user);
+                HttpContext.Current.AcceptWebSocketRequest(chatWebSocketHandler);
+                return Request.CreateResponse(HttpStatusCode.SwitchingProtocols);
             }
 
             return null;
         }
-
-        
-   }
+    }
 }

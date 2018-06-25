@@ -1,4 +1,5 @@
-﻿using Microsoft.Web.WebSockets;
+﻿using Chat.Domain.Models;
+using Microsoft.Web.WebSockets;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,39 +8,35 @@ namespace Chat.Controllers
     class ChatWebSocketHandler : WebSocketHandler
     {
         private static WebSocketCollection _webSocketClients = new WebSocketCollection();
-        private string _username;
 
-        private static List<string> _clients = new List<string>();
+        public IUserDTO User { get; set; }
 
-
-        public static List<string> Clients
+        public static List<IUserDTO> Clients
         {
             get
             {
-                return _clients;
+                return _webSocketClients.Select(x => ((ChatWebSocketHandler)x).User).ToList();
             }
         }
 
-        public ChatWebSocketHandler(string username)
+        public ChatWebSocketHandler(IUserDTO user)
         {
-            _username = username;
+            User = user;
         }
 
-        public bool IsConnected(string name)
+        public override void OnClose()
         {
-            var socket = _webSocketClients.SingleOrDefault(r => ((ChatWebSocketHandler)r)._username == _username);
-            return socket != null;
+            _webSocketClients.Remove(this);
         }
 
         public override void OnOpen()
         {
             _webSocketClients.Add(this);
-            _clients.Add(_username);
         }
 
         public override void OnMessage(string message)
         {
-            _webSocketClients.Broadcast(_username + ": " + message);
+            _webSocketClients.Broadcast(User.Name + ": " + message);
         }
     }
 }

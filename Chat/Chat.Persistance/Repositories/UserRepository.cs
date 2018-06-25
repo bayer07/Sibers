@@ -49,10 +49,10 @@ namespace Chat.Persistance.Repositories
             return chatContext.Users.Single(x => x.Id == userId);
         }
 
-        public bool IsValiad(string userName, string password)
+        public bool IsValiad(string name, string password)
         {
             var hash = CreateMD5(password);
-            var user = chatContext.Users.Single(x => x.Name == userName && x.Password == hash);
+            var user = chatContext.Users.Single(x => x.Name == name && x.Password == hash);
             return user != null;
         }
 
@@ -78,6 +78,12 @@ namespace Chat.Persistance.Repositories
 
                 return sb.ToString();
             }
+        }
+
+        public IUserDTO GetByCredentials(string name, string password)
+        {
+            var hash = CreateMD5(password);
+            return chatContext.Users.Single(x => x.Name == name && x.Password == hash);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Chat.Domain.Commands;
 using Chat.Domain.Requests;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Http;
 
 namespace Chat.Controllers
@@ -39,7 +40,7 @@ namespace Chat.Controllers
         [Route("clients")]
         public List<string> Clients()
         {
-            return ChatWebSocketHandler.Clients;
+            return ChatWebSocketHandler.Clients.Select(x => x.Name).ToList();
         }
     }
 }
