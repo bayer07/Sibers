@@ -27,11 +27,16 @@ Explain what these tests test and why
 Give an example
 
 ## Deployment
+To star work with data base need to change SQL host name. I use "Bair-PC" and you should replace for your own. Connection string is in Chat.Persistance and Chat.UnitTests and Chat projects, you should replace it all.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Built With
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* [Bootstrap](https://v4-alpha.getbootstrap.com/) - The web CSS framework to make prety layout
+* [CastleWindsor](http://www.castleproject.org/projects/windsor/) - Dependency Management
+* [EntityFramework](https://docs.microsoft.com/en-us/ef/) - Used to acced to data base and bind to classes
+* [JQuery] (https://jquery.com/) - Used for HTML DOM managment
+* [JQueryUI] (https://jqueryui.com/) - Used to create Dialogs
+* [NUnit] (http://nunit.org/) - Used for writing unit tests
+* [Web API] (https://www.asp.net/web-api) - API for access to HTTP protocol
