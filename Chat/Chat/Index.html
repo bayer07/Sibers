@@ -260,7 +260,7 @@
             }
 
             function connect(name, password) {
-                var uri = 'ws://' + window.location.hostname + ':' + location.port + '/' + 'api/WebSockets' +
+                var uri = 'ws://' + window.location.hostname + '/Chat/api/WebSockets' +
                     '?name=' + name + '&password=' + password;
                 websocket = new WebSocket(uri);
 
