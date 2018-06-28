@@ -260,7 +260,7 @@
             }
 
             function connect(name, password) {
-                var uri = 'ws://' + window.location.hostname + '/Chat/api/WebSockets' +
+                var uri = 'ws://' + window.location.hostname + (window.location.port != null ? ':' + window.location.port : '') + '/Chat/api/WebSockets' +
                     '?name=' + name + '&password=' + password;
                 websocket = new WebSocket(uri);
 
@@ -272,8 +272,6 @@
                         $('#inputbox').val('');
                         event.preventDefault();
                     });
-                    clearUsersList();
-                    fillUsersList();
                 };
 
                 websocket.onerror = function (err) {
@@ -281,7 +279,18 @@
                 };
 
                 websocket.onmessage = function (event) {
-                    $('#messages').prepend('<div>' + event.data + '</div>');
+                    var response = JSON.parse(event.data);
+                    switch (response.Command) {
+
+                        case 1:
+                            $('#messages').prepend('<div>' + response.Message + '</div>');
+                            break;
+                        case 3:
+                        case 2:
+                            clearUsersList();
+                            fillUsersList();
+                            break;
+                    }
                 };
             }
 

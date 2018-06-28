@@ -1,5 +1,8 @@
-﻿using Chat.Domain.Models;
+﻿using Chat.Domain.Enums;
+using Chat.Domain.Models;
+using Chat.Domain.Responses;
 using Microsoft.Web.WebSockets;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -27,16 +30,39 @@ namespace Chat.Controllers
         public override void OnClose()
         {
             _webSocketClients.Remove(this);
+
+            var response = new ClientResponse()
+            {
+                Command = ResponseCommand.Disconnected,
+            };
+
+            var json = JsonConvert.SerializeObject(response);
+            _webSocketClients.Broadcast(json);
         }
 
         public override void OnOpen()
         {
             _webSocketClients.Add(this);
+
+            var response = new ClientResponse()
+            {
+                Command = ResponseCommand.Connected,
+            };
+
+            var json = JsonConvert.SerializeObject(response);
+            _webSocketClients.Broadcast(json);
         }
 
         public override void OnMessage(string message)
         {
-            _webSocketClients.Broadcast(User.Name + ": " + message);
+            var response = new ClientResponse()
+            {
+                Command = ResponseCommand.Message,
+                Message = User.Name + " say:" + message
+            };
+
+            var json = JsonConvert.SerializeObject(response);
+            _webSocketClients.Broadcast(json);
         }
     }
 }

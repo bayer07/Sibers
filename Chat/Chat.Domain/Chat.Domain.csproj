@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Commands\AuthenticationCommand.cs" />
     <Compile Include="Commands\RegisterUserCommand.cs" />
+    <Compile Include="Enums\ResponseCommand.cs" />
     <Compile Include="Exceptions\InvalidUserException.cs" />
     <Compile Include="Models\IUserDTO.cs" />
     <Compile Include="Models\UserDTO.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="Repositories\IUserRepository.cs" />
     <Compile Include="Requests\AuthenticationRequest.cs" />
     <Compile Include="Requests\RegisterUserRequest.cs" />
+    <Compile Include="Responses\ClientResponse.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Validators\AuthenticationValidator.cs" />
     <Compile Include="Validators\RegisterUserValidator.cs" />
